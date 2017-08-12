@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Программирование ККМ</string>
+    <string name="choose_cash_machine">Выберите ККМ</string>
+    <string name="cash_machine_description">Описание ККМ</string>
+    <string name="edited_text">Место для отредактированного текста</string>
+
+</resources>
