@@ -1,28 +1,32 @@
 package ru.vovnit.cashmachineprogramming;
 
 import android.support.annotation.NonNull;
-import android.util.ArrayMap;
+import android.support.v4.util.ArrayMap;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 
 public class CashMachine {
     private String Name;
     private String Description;
-    private int LineWidth;
-    private ArrayMap<Character, Integer> CodeTable;
+    private String LineWidth;
+    private ArrayMap<Character, String> CodeTable;
 
     CashMachine() {
-        CodeTable.put('A', 0);
-        CodeTable.put('B', 1);
+        CodeTable = new ArrayMap<>();
     }
     String convert(String str) {
         StringBuilder res=new StringBuilder();
         for (char ch : str.toCharArray()) {
-            res.append(CodeTable.get(ch));
+            String add = CodeTable.get(ch);
+            if (add!=null) {
+                res.append(add);
+            } else {
+                res.append("-");
+            }
+            res.append(".");
         }
         return res.toString();
     }
@@ -30,13 +34,11 @@ public class CashMachine {
         StringBuilder sb = new StringBuilder();
         for (Object word : keywords.subList(i, keywords.size())) {
             sb.append(word);
+            sb.append(" ");
         }
         return sb.toString();
     }
     void parseMachineFromTxt(@NonNull String line) {
-        if (line.isEmpty()) {
-            return;
-        }
         ArrayList<String> keywords = new ArrayList<>(Arrays.asList(line.split(" ")));
 
         switch (keywords.get(0)) {
@@ -47,16 +49,29 @@ public class CashMachine {
                 Description = joinRest(keywords, 1);
                 break;
             case "w": //width of line
-                LineWidth = Integer.parseInt(keywords.get(1));
+                LineWidth = keywords.get(1);
                 break;
             case "a": //alphabet
-                for (String word : keywords) {
-                    int num = Integer.parseInt(word.substring(2));
+                for (String word : keywords.subList(1, keywords.size())) {
                     if (word.charAt(1)=='-') {
-                        CodeTable.put(word.charAt(0), num);
+                        CodeTable.put(word.charAt(0), word.substring(2));
                     }
                 }
                 break;
+            default:
+                break;
         }
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public String getDescription() {
+        return Description;
+    }
+
+    public String getLineWidth() {
+        return LineWidth;
     }
 }
