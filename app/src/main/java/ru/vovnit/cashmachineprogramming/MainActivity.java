@@ -1,12 +1,16 @@
 package ru.vovnit.cashmachineprogramming;
 
 import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
+import android.os.AsyncTask;
+import android.os.PersistableBundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,22 +20,33 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import data.CashMachineContract.CashMachineEntry;
+import data.MachineDbHelper;
 
 public class MainActivity extends AppCompatActivity {
 
     CashMachine cashMachine;
     EditText editText;
-    TextView textView;
+    TextView formatedText;
+    TextView descriptionText;
+
+    Spinner spinner;
+    MachineDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +56,10 @@ public class MainActivity extends AppCompatActivity {
         myToolbar.setTitle("");
         setSupportActionBar(myToolbar);
 
+        spinner=(Spinner)findViewById(R.id.ChooseSpinner);
         editText=(EditText)findViewById(R.id.OriginalEditText);
-        textView=(TextView)findViewById(R.id.FormatedText);
-
+        formatedText =(TextView)findViewById(R.id.FormatedText);
+        descriptionText = (TextView)findViewById(R.id.MachineDescription);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -60,9 +76,9 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (cashMachine!=null) {
                     String expression = charSequence.toString();
-                    int lineWidth= Integer.parseInt(cashMachine.getLineWidth());
-                    expression=expression.replaceAll("(.{" + lineWidth + "})", "$1\n");
-                    textView.setText(cashMachine.convert(expression));
+
+                        setTextFromCashMachine(expression);
+
                 }
             }
 
@@ -71,7 +87,28 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        dbHelper=new MachineDbHelper(this);
+        if (savedInstanceState!= null) {
+            cashMachine = savedInstanceState.getParcelable("cashMachine");
+            if (!editText.getText().toString().isEmpty()) {
+                setTextFromCashMachine(editText.getText().toString());
+            }
+        } else {
+            cashMachine=new CashMachine();
+        }
+        SpinnerListener.loadSpinnerData(this, spinner);
+        SpinnerListener spinnerListener = new SpinnerListener(cashMachine, dbHelper);
+        spinner.setOnItemSelectedListener(spinnerListener);
+    }
 
+    void setTextFromCashMachine(String expression) {
+        try {
+            int lineWidth = Integer.parseInt(cashMachine.getLineWidth());
+            expression = expression.replaceAll("(.{" + lineWidth + "})", "$1\n");
+            formatedText.setText(cashMachine.convert(expression));
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -86,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
-                cashMachine=new CashMachine();
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
                     Intent intent = null;
                     intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -106,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 } else {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    break;
                 }
             default:
                 break;
@@ -117,11 +154,69 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            MachineHandler machineHandler = new MachineHandler();
-            String code = machineHandler.readFromTextFile(resultData, this);
+            String code = readFromTextFile(resultData, this);
             //code=code.replaceAll("\\P{Print}","");
-            cashMachine.parseMachineFromTxt(code);
+            final ArrayList<String> lines = cashMachine.parseMachineFromTxt(code);
+            editText.setText(editText.getText());
+            AsyncTask<Void, Void, Void> addToDatabase = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    SQLiteDatabase db = dbHelper.getWritableDatabase();
+                    ContentValues cv = new ContentValues();
+                    for (String line : lines) {
+                        switch (line.charAt(0)) {
+                            case 'n':
+                                cv.put(CashMachineEntry.COLUMN_NAME, line.substring(2));
+                                break;
+                            case 'd':
+                                cv.put(CashMachineEntry.COLUMN_DESCRIPTION, line.substring(2));
+                                break;
+                            case 'w':
+                                cv.put(CashMachineEntry.COLUMN_WIDTH, line.substring(2));
+                                break;
+                            case 'a':
+                                cv.put(CashMachineEntry.COLUMN_ALPHABET, line.substring(2));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    long a = db.insert(CashMachineEntry.TABLE_NAME, null, cv);
+                    return null;
+                }
+            }.execute();
         }
     }
+    String readFromTextFile(Intent resultData, Context context) {
+        String res="";
+        if (resultData != null) {
+            Uri uri = resultData.getData();
+            InputStream inputStream = null;
+            try {
+                inputStream = context.getContentResolver().openInputStream(uri);
 
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        inputStream));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    stringBuilder.append(line);
+                    stringBuilder.append("\n");
+                }
+                res=stringBuilder.toString();
+
+                reader.close();
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable("cashMachine", cashMachine);
+        super.onSaveInstanceState(outState);
+    }
 }

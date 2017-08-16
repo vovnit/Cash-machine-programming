@@ -43,6 +43,7 @@
 
             <Spinner
                 android:id="@+id/ChooseSpinner"
+                android:prompt="@string/cash_machine_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

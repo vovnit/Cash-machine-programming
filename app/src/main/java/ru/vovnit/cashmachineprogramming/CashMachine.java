@@ -1,13 +1,16 @@
 package ru.vovnit.cashmachineprogramming;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.util.ArrayMap;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 
-public class CashMachine {
+public class CashMachine implements Parcelable{
     private String Name;
     private String Description;
     private String LineWidth;
@@ -44,7 +47,7 @@ public class CashMachine {
         return sb.toString();
     }
 
-    void parseMachineFromTxt(String code) {
+    ArrayList<String> parseMachineFromTxt(String code) {
         ArrayList<String> lines = new ArrayList<>(Arrays.asList(code.split("\n")));
         for (String line : lines) {
             ArrayList<String> keywords = new ArrayList<>(Arrays.asList(line.split(" ")));
@@ -77,6 +80,7 @@ public class CashMachine {
                     break;
             }
         }
+        return lines;
     }
 
     public String getName() {
@@ -90,4 +94,46 @@ public class CashMachine {
     public String getLineWidth() {
         return LineWidth;
     }
+
+    protected CashMachine(Parcel in) {
+        Name = in.readString();
+        Description = in.readString();
+        LineWidth = in.readString();
+        int size = in.readInt();
+        for (int i=0;i<size;i++) {
+            Character key=in.readString().charAt(0);
+            String value = in.readString();
+            CodeTable.put(key, value);
+        }
+    }
+
+    public static final Creator<CashMachine> CREATOR = new Creator<CashMachine>() {
+        @Override
+        public CashMachine createFromParcel(Parcel in) {
+            return new CashMachine(in);
+        }
+
+        @Override
+        public CashMachine[] newArray(int size) {
+            return new CashMachine[size];
+        }
+    };
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(Name);
+        parcel.writeString(Description);
+        parcel.writeString(LineWidth);
+        parcel.writeInt(CodeTable.size());
+        for (Map.Entry<Character, String> entry : CodeTable.entrySet()) {
+            parcel.writeString(entry.getKey().toString());
+            parcel.writeString(entry.getValue());
+        }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
 }

@@ -1,10 +1,11 @@
 <resources>
     <string name="app_name">Cash Machine Programming</string>
     <string name="choose_cash_machine">Choose cash machine</string>
+    <string name="cash_machine_list">Cash machines list</string>
     <string name="cash_machine_description">Description for cash machine</string>
     <string name="edited_text">Place for edited text</string>
     <string name="action_add">Add new machine</string>
     <string name="action_rotate">Rotate screen</string>
-    <string name="low_android_version">Your versin of Android can\'t
+    <string name="low_android_version">Your versine of Android can\'t
         handle adding new Cash Machine</string>
 </resources>

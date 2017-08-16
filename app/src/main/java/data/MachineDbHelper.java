@@ -2,8 +2,14 @@ package data;
 
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import data.CashMachineContract.CashMachineEntry;
 import ru.vovnit.cashmachineprogramming.CashMachine;
@@ -12,7 +18,7 @@ import ru.vovnit.cashmachineprogramming.CashMachine;
  * Created by vovnit on 16/08/17.
  */
 
-public class MachineDbHelper extends SQLiteOpenHelper {
+public class MachineDbHelper extends SQLiteOpenHelper{
 
     public static final String LOG_TAG = MachineDbHelper.class.getSimpleName();
 
@@ -42,5 +48,30 @@ public class MachineDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF IT EXISTS " + CashMachineEntry.TABLE_NAME);
         // Создаём новую таблицу
         onCreate(sqLiteDatabase);
+    }
+
+    public List<String> getAllNames(){
+        List<String> labels = new ArrayList<String>();
+        // Select All Query
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(CashMachineEntry.TABLE_NAME, null, null, null, null, null, null);
+
+
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            int nameColumnIndex = cursor.getColumnIndex(CashMachineEntry.COLUMN_NAME);
+            do {
+                labels.add(cursor.getString(nameColumnIndex));
+            } while (cursor.moveToNext());
+        }
+
+        // closing connection
+        cursor.close();
+        db.close();
+
+        // returning lables
+        return labels;
     }
 }
