@@ -4,5 +4,7 @@
     <string name="choose_cash_machine">Выберите ККМ</string>
     <string name="cash_machine_description">Описание ККМ</string>
     <string name="edited_text">Место для отредактированного текста</string>
+    <string name="action_add">Добавить новую ККМ</string>
+    <string name="action_rotate">Повернуть экран</string>
 
 </resources>
