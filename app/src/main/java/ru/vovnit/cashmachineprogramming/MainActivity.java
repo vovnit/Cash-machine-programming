@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     EditText editText;
     TextView formatedText;
     TextView descriptionText;
-
+    boolean isUpper=false;
     Spinner spinner;
     MachineDbHelper dbHelper;
 
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
-        myToolbar.setTitle("");
+        myToolbar.setTitle(getResources().getString(R.string.app_name));
         setSupportActionBar(myToolbar);
 
         spinner=(Spinner)findViewById(R.id.ChooseSpinner);
@@ -76,20 +77,19 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (cashMachine!=null) {
                     String expression = charSequence.toString();
-
-                        setTextFromCashMachine(expression);
-
+                    //TODO change charSequence
+                    setTextFromCashMachine(expression);
                 }
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-
             }
         });
         dbHelper=new MachineDbHelper(this);
         if (savedInstanceState!= null) {
             cashMachine = savedInstanceState.getParcelable("cashMachine");
+            descriptionText.setText(savedInstanceState.getString("descriptionText"));
             if (!editText.getText().toString().isEmpty()) {
                 setTextFromCashMachine(editText.getText().toString());
             }
@@ -97,7 +97,8 @@ public class MainActivity extends AppCompatActivity {
             cashMachine=new CashMachine();
         }
         SpinnerListener.loadSpinnerData(this, spinner);
-        SpinnerListener spinnerListener = new SpinnerListener(cashMachine, dbHelper);
+        SpinnerListener spinnerListener = new SpinnerListener(cashMachine, dbHelper,
+                descriptionText, this);
         spinner.setOnItemSelectedListener(spinnerListener);
     }
 
@@ -217,6 +218,52 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable("cashMachine", cashMachine);
+        outState.putString("descriptionText", descriptionText.getText().toString());
         super.onSaveInstanceState(outState);
+    }
+
+    public void onButtonsCLick(View view) {
+        switch (view.getId()) {
+            case R.id.buttonCenter:
+                int width= Integer.parseInt(cashMachine.getLineWidth());
+                ArrayList <String> lines = new ArrayList<>();
+                for (String line : editText.getText().toString().split("\n")) {
+                    if (line.length()>width) {
+                        line =  line.replaceAll("(.{" + width + "})", "$1\n");
+                        lines.addAll(Arrays.asList(line.split("\n")));
+                    } else {
+                        lines.add(line);
+                    }
+                }
+                StringBuilder res = new StringBuilder();
+                for (String line : lines) {
+                    int length = line.length();
+                    if (length<width) {
+                        int p = (width-length)/2;
+                        while (p>0) {
+                            res.append(" ");
+                            --p;
+                        }
+                        res.append(line);
+                        res.append("\n");
+                    } else {
+                        res.append(line);
+                        res.append("\n");
+                    }
+                }
+                editText.setText(res.toString());
+                break;
+            case R.id.buttonUpper:
+                if (!isUpper) {
+                    editText.setText(editText.getText().toString().toUpperCase());
+                    isUpper=true;
+                } else {
+                    editText.setText(editText.getText().toString().toLowerCase());
+                    isUpper=false;
+                }
+                break;
+            default:
+                break;
+        }
     }
 }

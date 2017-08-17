@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -21,12 +22,19 @@ import data.MachineDbHelper;
 public class SpinnerListener implements AdapterView.OnItemSelectedListener {
     private CashMachine cashMachine;
     private MachineDbHelper dbHelper;
-    SpinnerListener(CashMachine cashMachine, MachineDbHelper machineDbHelper) {
+    private Context context;
+    private TextView descriptionText;
+
+    SpinnerListener(CashMachine cashMachine, MachineDbHelper machineDbHelper,
+                    TextView descriptionText, Context context) {
         this.cashMachine=cashMachine;
         this.dbHelper=machineDbHelper;
+        this.descriptionText=descriptionText;
+        this.context=context;
     }
     @Override
     public void onItemSelected(final AdapterView<?> adapterView, View view, int i, long l) {
+        cashMachine.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME, null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
@@ -44,7 +52,12 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
                     cashMachine.parseMachineFromTxt("a " + cursor.getString(alphabetColIndex));
                     break;
                 }
-            } while (cursor.moveToFirst());
+            } while (cursor.moveToNext());
+            if (descriptionText!=null) {
+                descriptionText.setText(cashMachine.getDescription() +
+                        context.getResources().getString(R.string.width_of_line) + " " +
+                        cashMachine.getLineWidth());
+            }
         }
 
         cursor.close();

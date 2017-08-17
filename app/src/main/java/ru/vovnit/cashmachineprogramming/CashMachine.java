@@ -24,6 +24,7 @@ public class CashMachine implements Parcelable{
         StringBuilder res=new StringBuilder();
         for (char ch : str.toCharArray()) {
             if (ch=='\n') {
+                res.append("∣∣∣∣∣ ");
                 res.append("\n");
                 continue;
             }
@@ -70,6 +71,7 @@ public class CashMachine implements Parcelable{
                         }
                         if (space) {
                             word = " " + word;
+                            space=false;
                         }
                         if (word.charAt(1) == '-') {
                             CodeTable.put(word.charAt(0), word.substring(2));
@@ -93,6 +95,13 @@ public class CashMachine implements Parcelable{
 
     public String getLineWidth() {
         return LineWidth;
+    }
+
+    public void clear() {
+        Name="";
+        Description="";
+        LineWidth="";
+        CodeTable.clear();
     }
 
     protected CashMachine(Parcel in) {

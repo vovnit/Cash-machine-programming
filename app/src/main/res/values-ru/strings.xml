@@ -6,5 +6,10 @@
     <string name="edited_text">Место для отредактированного текста</string>
     <string name="action_add">Добавить новую ККМ</string>
     <string name="action_rotate">Повернуть экран</string>
+    <string name="cash_machine_list">Список ККМ</string>
+    <string name="low_android_version">Ваша версия Android не подходит для добавления новой ККМ</string>
+    <string name="width_of_line">\nКоличество символов в строке</string>
+    <string name="button_center">В центр</string>
+    <string name="button_upper">Изменить регистр</string>
 
 </resources>
