@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     boolean isUpper=false;
     Spinner spinner;
     MachineDbHelper dbHelper;
+    ArrayAdapter<String> dataAdapter;
+    List<String> names;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (cashMachine!=null) {
                     String expression = charSequence.toString();
-                    //TODO change charSequence
                     setTextFromCashMachine(expression);
                 }
             }
@@ -97,9 +99,21 @@ public class MainActivity extends AppCompatActivity {
         } else {
             cashMachine=new CashMachine();
         }
-        SpinnerListener.loadSpinnerData(this, spinner);
+
+        names = dbHelper.getAllNames();
+        // Creating adapter for spinner
+        dataAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, names);
+
+        // Drop down layout style - list view with radio button
+        dataAdapter
+                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // attaching data adapter to spinner
+        spinner.setAdapter(dataAdapter);
+
         SpinnerListener spinnerListener = new SpinnerListener(cashMachine, dbHelper,
-                descriptionText, this);
+                descriptionText, this, editText);
         spinner.setOnItemSelectedListener(spinnerListener);
     }
 
@@ -120,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int REQUEST_CODE=42;
+    private int REQUEST_LIST_CODE=103;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -146,6 +161,10 @@ public class MainActivity extends AppCompatActivity {
                     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                     break;
                 }
+            case R.id.action_list:
+                Intent intent = new Intent(this, CashMachinesActivity.class);
+                startActivityForResult(intent, REQUEST_LIST_CODE);
+                break;
             default:
                 break;
         }
@@ -198,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             }
                         } while (cursor.moveToNext());
+
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -212,12 +232,65 @@ public class MainActivity extends AppCompatActivity {
                     if (!replaced) {
                         db.insert(CashMachineEntry.TABLE_NAME, null, cv);
                     }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            names.clear();
+                            names.addAll(dbHelper.getAllNames());
+                            ((BaseAdapter)spinner.getAdapter()).notifyDataSetChanged();
+                            cashMachine.clear();
+                            if (names.isEmpty()) {
+                                descriptionText.setText(getString(R.string.cash_machine_description));
+                                formatedText.setText(getString(R.string.cash_machine_description));
+                            } else {
+                                getFirstMachine();
+                                editText.setText(editText.getText());
+                            }
+                        }
+                    });
+
                     cursor.close();
                     return null;
                 }
             }.execute();
+        } else if(requestCode == REQUEST_LIST_CODE) {
+            names.clear();
+            names.addAll(dbHelper.getAllNames());
+            ((BaseAdapter)spinner.getAdapter()).notifyDataSetChanged();
+            if (names.isEmpty()) {
+                cashMachine.clear();
+                descriptionText.setText(getString(R.string.cash_machine_description));
+                formatedText.setText(getString(R.string.edited_text));
+            } else {
+                getFirstMachine();
+                editText.setText(editText.getText());
+            }
         }
     }
+    void getFirstMachine() {
+        cashMachine.clear();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME, null, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int idColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry._ID);
+            int nameColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_NAME);
+            int descColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_DESCRIPTION);
+            int widthColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_WIDTH);
+            int alphabetColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_ALPHABET);
+            cashMachine.parseMachineFromTxt("n " + cursor.getString(nameColIndex));
+            cashMachine.parseMachineFromTxt("d " + cursor.getString(descColIndex));
+            cashMachine.parseMachineFromTxt("w " + cursor.getString(widthColIndex));
+            cashMachine.parseMachineFromTxt("a " + cursor.getString(alphabetColIndex));
+            if (descriptionText != null) {
+                descriptionText.setText(cashMachine.getDescription() +
+                        getResources().getString(R.string.width_of_line) + " " +
+                        cashMachine.getLineWidth());
+            }
+        } else {
+            cashMachine.clear();
+        }
+    }
+
     String readFromTextFile(Intent resultData, Context context) {
         String res="";
         if (resultData != null) {
@@ -255,41 +328,53 @@ public class MainActivity extends AppCompatActivity {
     public void onButtonsCLick(View view) {
         switch (view.getId()) {
             case R.id.buttonCenter:
-                int width= Integer.parseInt(cashMachine.getLineWidth());
-                ArrayList <String> lines = new ArrayList<>();
-                for (String line : editText.getText().toString().split("\n")) {
-                    if (line.length()>width) {
-                        line =  line.replaceAll("(.{" + width + "})", "$1\n");
-                        lines.addAll(Arrays.asList(line.split("\n")));
-                    } else {
-                        lines.add(line);
-                    }
-                }
-                StringBuilder res = new StringBuilder();
-                for (String line : lines) {
-                    int length = line.length();
-                    if (length<width) {
-                        int p = (width-length)/2;
-                        while (p>0) {
-                            res.append(" ");
-                            --p;
+                if (!cashMachine.isEmpty()) {
+                    int width = Integer.parseInt(cashMachine.getLineWidth());
+                    ArrayList<String> lines = new ArrayList<>();
+                    for (String line : editText.getText().toString().split("\n")) {
+                        if (line.length() > width) {
+                            line = line.replaceAll("(.{" + width + "})", "$1\n");
+                            lines.addAll(Arrays.asList(line.split("\n")));
+                        } else {
+                            lines.add(line);
                         }
-                        res.append(line);
-                        res.append("\n");
-                    } else {
-                        res.append(line);
-                        res.append("\n");
                     }
+                    StringBuilder res = new StringBuilder();
+                    for (String line : lines) {
+                        int length = line.length();
+                        if (length < width) {
+                            int p = (width - length) / 2;
+                            while (p > 0) {
+                                res.append(" ");
+                                --p;
+                            }
+                            res.append(line);
+                            res.append("\n");
+                        } else {
+                            res.append(line);
+                            res.append("\n");
+                        }
+                    }
+                    editText.setText(res.toString());
+                } else {
+                    Snackbar.make( findViewById(R.id.mainLayout),
+                            getString(R.string.no_cr),
+                            Snackbar.LENGTH_LONG).show();
                 }
-                editText.setText(res.toString());
                 break;
             case R.id.buttonUpper:
-                if (!isUpper) {
-                    editText.setText(editText.getText().toString().toUpperCase());
-                    isUpper=true;
+                if (editText.getText().toString().isEmpty()) {
+                    Snackbar.make( findViewById(R.id.mainLayout),
+                            getString(R.string.no_text),
+                            Snackbar.LENGTH_LONG).show();
                 } else {
-                    editText.setText(editText.getText().toString().toLowerCase());
-                    isUpper=false;
+                    if (!isUpper) {
+                        editText.setText(editText.getText().toString().toUpperCase());
+                        isUpper = true;
+                    } else {
+                        editText.setText(editText.getText().toString().toLowerCase());
+                        isUpper = false;
+                    }
                 }
                 break;
             default:

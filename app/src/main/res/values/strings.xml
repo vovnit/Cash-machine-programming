@@ -1,14 +1,26 @@
 <resources>
     <string name="app_name">CR programming</string>
-    <string name="choose_cash_machine">Choose cash machine</string>
-    <string name="cash_machine_list">Cash machines list</string>
-    <string name="cash_machine_description">Description for cash machine</string>
+    <string name="item_delete">Choose CR to delete</string>
+    <string name="choose_cash_machine">Choose CR</string>
+    <string name="cash_machine_list">CR list</string>
+    <string name="cash_machine_description">Description for CR</string>
     <string name="edited_text">Place for edited text</string>
-    <string name="action_add">Add new machine</string>
+
+    <string name="action_add">Add new CR</string>
     <string name="action_rotate">Rotate screen</string>
+    <string name="action_list">List of CR</string>
+    <string name="action_delete">Delete CR</string>
+
     <string name="low_android_version">Your version of Android can\'t
-        handle adding new Cash Machine</string>
+        handle adding new CR</string>
     <string name="width_of_line">\nWidth of line is</string>
+    <string name="no_selection">Nothing to delete</string>
+    <string name="no_cr">No CR to work with</string>
+    <string name="no_text">No text to work with</string>
+    <string name="sure_question">Are you sure? This cannot be undone</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+
     <string name="button_upper">Change case</string>
     <string name="button_center">To center</string>
 </resources>

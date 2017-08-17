@@ -104,6 +104,10 @@ public class CashMachine implements Parcelable{
         CodeTable.clear();
     }
 
+    public boolean isEmpty() {
+        return CodeTable.isEmpty();
+    }
+
     protected CashMachine(Parcel in) {
         Name = in.readString();
         Description = in.readString();

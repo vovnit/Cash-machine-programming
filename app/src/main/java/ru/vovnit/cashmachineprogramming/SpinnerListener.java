@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -24,13 +25,15 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
     private MachineDbHelper dbHelper;
     private Context context;
     private TextView descriptionText;
+    private EditText editText;
 
     SpinnerListener(CashMachine cashMachine, MachineDbHelper machineDbHelper,
-                    TextView descriptionText, Context context) {
+                    TextView descriptionText, Context context, EditText editText) {
         this.cashMachine=cashMachine;
         this.dbHelper=machineDbHelper;
         this.descriptionText=descriptionText;
         this.context=context;
+        this.editText=editText;
     }
     @Override
     public void onItemSelected(final AdapterView<?> adapterView, View view, int i, long l) {
@@ -58,6 +61,7 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
                         context.getResources().getString(R.string.width_of_line) + " " +
                         cashMachine.getLineWidth());
             }
+            editText.setText(editText.getText());
         }
 
         cursor.close();
@@ -73,17 +77,6 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
         MachineDbHelper db = new MachineDbHelper(context);
 
         // Spinner Drop down elements
-        List<String> lables = db.getAllNames();
 
-        // Creating adapter for spinner
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(context,
-                android.R.layout.simple_spinner_item, lables);
-
-        // Drop down layout style - list view with radio button
-        dataAdapter
-                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // attaching data adapter to spinner
-        spinner.setAdapter(dataAdapter);
     }
 }
