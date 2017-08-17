@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import data.CashMachineContract;
 import data.CashMachineContract.CashMachineEntry;
 import data.MachineDbHelper;
 
@@ -182,7 +183,36 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                     }
-                    long a = db.insert(CashMachineEntry.TABLE_NAME, null, cv);
+                    boolean replaced=false;
+                    Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME,
+                            null, null, null, null, null, null);
+                    if (cursor.moveToFirst()) {
+                        int idColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry._ID);
+                        int nameColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_NAME);
+                        do {
+                            if (cursor.getString(nameColIndex)
+                                    .equals(cv.getAsString(CashMachineEntry.COLUMN_NAME))) {
+                                db.update(CashMachineEntry.TABLE_NAME, cv,
+                                        "_id="+cursor.getString(idColIndex), null);
+                                replaced=true;
+                                break;
+                            }
+                        } while (cursor.moveToNext());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (descriptionText!=null) {
+                                    descriptionText.setText(cashMachine.getDescription() +
+                                            getResources().getString(R.string.width_of_line) + " " +
+                                            cashMachine.getLineWidth());
+                                }
+                            }
+                        });
+                    }
+                    if (!replaced) {
+                        db.insert(CashMachineEntry.TABLE_NAME, null, cv);
+                    }
+                    cursor.close();
                     return null;
                 }
             }.execute();
