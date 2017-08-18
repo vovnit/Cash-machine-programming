@@ -66,7 +66,7 @@ public class CashMachinesActivity extends AppCompatActivity {
         for (int i=0;i<names.size();++i) {
             if (checked.get(i)) {
                 int key=checked.keyAt(i);
-                trues.add(key);
+                trues.add(i);
             }
         }
         switch (item.getItemId()) {

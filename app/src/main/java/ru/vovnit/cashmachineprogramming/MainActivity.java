@@ -3,6 +3,7 @@ package ru.vovnit.cashmachineprogramming;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -10,13 +11,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Debug;
 import android.os.PersistableBundle;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -165,6 +169,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, CashMachinesActivity.class);
                 startActivityForResult(intent, REQUEST_LIST_CODE);
                 break;
+            case R.id.action_help:
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                alert.setMessage(getString(R.string.help));
+                alert.setNegativeButton(getResources().getString(R.string.close),
+                        new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                alert.setCancelable(true);
+                alert.show();
+                break;
             default:
                 break;
         }
@@ -177,64 +194,78 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             String code = readFromTextFile(resultData, this);
             //code=code.replaceAll("\\P{Print}","");
-            final ArrayList<String> lines = cashMachine.parseMachineFromTxt(code);
-            editText.setText(editText.getText());
-            AsyncTask<Void, Void, Void> addToDatabase = new AsyncTask<Void, Void, Void>() {
+            final ArrayList<String> lines = new ArrayList<>(Arrays.asList(code.split("\n")));
+            new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
-                    SQLiteDatabase db = dbHelper.getWritableDatabase();
-                    ContentValues cv = new ContentValues();
-                    for (String line : lines) {
-                        switch (line.charAt(0)) {
-                            case 'n':
-                                cv.put(CashMachineEntry.COLUMN_NAME, line.substring(2));
-                                break;
-                            case 'd':
-                                cv.put(CashMachineEntry.COLUMN_DESCRIPTION, line.substring(2));
-                                break;
-                            case 'w':
-                                cv.put(CashMachineEntry.COLUMN_WIDTH, line.substring(2));
-                                break;
-                            case 'a':
-                                cv.put(CashMachineEntry.COLUMN_ALPHABET, line.substring(2));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    boolean replaced=false;
-                    Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME,
-                            null, null, null, null, null, null);
-                    if (cursor.moveToFirst()) {
-                        int idColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry._ID);
-                        int nameColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_NAME);
-                        do {
-                            if (cursor.getString(nameColIndex)
-                                    .equals(cv.getAsString(CashMachineEntry.COLUMN_NAME))) {
-                                db.update(CashMachineEntry.TABLE_NAME, cv,
-                                        "_id="+cursor.getString(idColIndex), null);
-                                replaced=true;
-                                break;
-                            }
-                        } while (cursor.moveToNext());
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (descriptionText!=null) {
-                                    descriptionText.setText(cashMachine.getDescription() +
-                                            getResources().getString(R.string.width_of_line) + " " +
-                                            cashMachine.getLineWidth());
-                                }
+                    while (!lines.isEmpty()) {
+                        SQLiteDatabase db = dbHelper.getWritableDatabase();
+                        Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME,
+                                null, null, null, null, null, null);
+                        ContentValues cv = new ContentValues();
+                        for (int i=0; i<5 ; i++) {
+                            switch (lines.get(0).charAt(0)) {
+                                case 'n':
+                                    cv.put(CashMachineEntry.COLUMN_NAME, lines.get(0).substring(2));
+                                    lines.remove(lines.get(0));
+                                    break;
+                                case 'd':
+                                    cv.put(CashMachineEntry.COLUMN_DESCRIPTION, lines.get(0).substring(2));
+                                    lines.remove(lines.get(0));
+                                    break;
+                                case 'w':
+                                    cv.put(CashMachineEntry.COLUMN_WIDTH, lines.get(0).substring(2));
+                                    lines.remove(lines.get(0));
+                                    break;
+                                case 'a':
+                                    cv.put(CashMachineEntry.COLUMN_ALPHABET, lines.get(0).substring(2));
+                                    lines.remove(lines.get(0));
+                                    break;
+                                case '-':
+                                    lines.remove(lines.get(0));
+                                    break;
+                                default:
+                                    break;
                             }
-                        });
+                        }
+                        boolean replaced = false;
+
+                        if (cursor.moveToFirst()) {
+                            int idColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry._ID);
+                            int nameColIndex = cursor.getColumnIndex(CashMachineContract.CashMachineEntry.COLUMN_NAME);
+                            do {
+                                if (cursor.getString(nameColIndex)
+                                        .equals(cv.getAsString(CashMachineEntry.COLUMN_NAME))) {
+                                    db.update(CashMachineEntry.TABLE_NAME, cv,
+                                            "_id=" + cursor.getString(idColIndex), null);
+                                    replaced = true;
+                                    break;
+                                }
+                            } while (cursor.moveToNext());
+
+
+                        }
+                        if (!replaced) {
+                            db.insert(CashMachineEntry.TABLE_NAME, null, cv);
+                        }
+
+                        cursor.close();
                     }
-                    if (!replaced) {
-                        db.insert(CashMachineEntry.TABLE_NAME, null, cv);
-                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            if (descriptionText != null) {
+                                descriptionText.setText(cashMachine.getDescription() +
+                                        getResources().getString(R.string.width_of_line) + " " +
+                                        cashMachine.getLineWidth());
+                            }
                             names.clear();
                             names.addAll(dbHelper.getAllNames());
                             ((BaseAdapter)spinner.getAdapter()).notifyDataSetChanged();
@@ -248,9 +279,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-
-                    cursor.close();
-                    return null;
                 }
             }.execute();
         } else if(requestCode == REQUEST_LIST_CODE) {

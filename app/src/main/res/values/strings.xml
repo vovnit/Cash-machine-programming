@@ -10,7 +10,16 @@
     <string name="action_rotate">Rotate screen</string>
     <string name="action_list">List of CR</string>
     <string name="action_delete">Delete CR</string>
+    <string name="action_help">Help</string>
 
+    <string name="help">Text for adding new CR must look like this:\n
+        n{space}{CR name}{line break}\n
+        d{space}{CR description}{line break}\n
+        w{space}{width of line in CR}{line break}\n
+        a{space}{symbol}{dash -}{symbol code}{space}…{line break}\n
+        {dash -}{line break}\n
+        … construction above can be repeated so many times as you want</string>
+    <string name="close">Close</string>
     <string name="low_android_version">Your version of Android can\'t
         handle adding new CR</string>
     <string name="width_of_line">\nWidth of line is</string>

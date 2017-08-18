@@ -11,5 +11,23 @@
     <string name="width_of_line">\nКоличество символов в строке</string>
     <string name="button_center">В центр</string>
     <string name="button_upper">Изменить регистр</string>
+    <string name="no_cr">Отсутствует ККМ</string>
+    <string name="no_selection">Нечего удалять</string>
+    <string name="no_text">Нет текста для преобразования</string>
+    <string name="sure_question">Вы уверены? Это действие нельзя будет отменить</string>
+    <string name="item_delete">Выберите ККМ для удаления</string>
+    <string name="delete">Удалить</string>
+    <string name="close">Закрыть</string>
+    <string name="cancel">Отменить</string>
+    <string name="action_list">Список ККМ</string>
+    <string name="action_help">Помощь</string>
+    <string name="action_delete">Удалить ККМ</string>
+    <string name="help">Оформление текстового файла для добавления ККМ:\n
+        n{пробел}{имя ККМ}{перенос строки}\n
+        d{пробел}{описание ККМ}{перенос строки}\n
+        w{пробел}{количество символов в строке ККМ}{перенос строки}\n
+        a{пробел}{символ}{обычное тире -}{код символа}{пробел}…{перенос строки}\n
+        {обычное тире -}{перенос строки}\n
+        … конструкцию выше можно повторить сколько угодно раз в одном текстовом файле</string>
 
 </resources>
