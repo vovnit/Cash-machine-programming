@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                                 null, null, null, null, null, null);
                         ContentValues cv = new ContentValues();
                         for (int i=0; i<5 ; i++) {
-                            switch (lines.get(0).charAt(0)) {
+                            switch (lines.get(0).toLowerCase().charAt(0)) {
                                 case 'n':
                                     cv.put(CashMachineEntry.COLUMN_NAME, lines.get(0).substring(2));
                                     lines.remove(lines.get(0));
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                                     lines.remove(lines.get(0));
                                     break;
                                 default:
-                                    break;
+                                    return null;
                             }
                         }
                         boolean replaced = false;
