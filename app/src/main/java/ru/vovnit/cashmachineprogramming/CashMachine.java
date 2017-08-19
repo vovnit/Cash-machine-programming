@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
-public class CashMachine implements Parcelable{
+public class CashMachine implements Parcelable {
     private String Name;
     private String Description;
     private String LineWidth;
@@ -21,15 +21,15 @@ public class CashMachine implements Parcelable{
     }
 
     String convert(String str) {
-        StringBuilder res=new StringBuilder();
+        StringBuilder res = new StringBuilder();
         for (char ch : str.toCharArray()) {
-            if (ch=='\n') {
+            if (ch == '\n') {
                 res.append("∣∣∣∣∣ ");
                 res.append("\n");
                 continue;
             }
             String add = CodeTable.get(ch);
-            if (add!=null) {
+            if (add != null) {
                 res.append(add);
             } else {
                 res.append("-");
@@ -71,7 +71,7 @@ public class CashMachine implements Parcelable{
                         }
                         if (space) {
                             word = " " + word;
-                            space=false;
+                            space = false;
                         }
                         if (word.charAt(1) == '-') {
                             CodeTable.put(word.charAt(0), word.substring(2));
@@ -98,9 +98,9 @@ public class CashMachine implements Parcelable{
     }
 
     public void clear() {
-        Name="";
-        Description="";
-        LineWidth="";
+        Name = "";
+        Description = "";
+        LineWidth = "";
         CodeTable.clear();
     }
 
@@ -113,8 +113,8 @@ public class CashMachine implements Parcelable{
         Description = in.readString();
         LineWidth = in.readString();
         int size = in.readInt();
-        for (int i=0;i<size;i++) {
-            Character key=in.readString().charAt(0);
+        for (int i = 0; i < size; i++) {
+            Character key = in.readString().charAt(0);
             String value = in.readString();
             CodeTable.put(key, value);
         }

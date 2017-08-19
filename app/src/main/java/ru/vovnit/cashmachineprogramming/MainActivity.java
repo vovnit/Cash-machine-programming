@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     EditText editText;
     TextView formatedText;
     TextView descriptionText;
-    boolean isUpper=false;
+    boolean isUpper = false;
     Spinner spinner;
     MachineDbHelper dbHelper;
     ArrayAdapter<String> dataAdapter;
@@ -65,10 +65,10 @@ public class MainActivity extends AppCompatActivity {
         myToolbar.setTitle(getResources().getString(R.string.app_name));
         setSupportActionBar(myToolbar);
 
-        spinner=(Spinner)findViewById(R.id.ChooseSpinner);
-        editText=(EditText)findViewById(R.id.OriginalEditText);
-        formatedText =(TextView)findViewById(R.id.FormatedText);
-        descriptionText = (TextView)findViewById(R.id.MachineDescription);
+        spinner = (Spinner) findViewById(R.id.ChooseSpinner);
+        editText = (EditText) findViewById(R.id.OriginalEditText);
+        formatedText = (TextView) findViewById(R.id.FormatedText);
+        descriptionText = (TextView) findViewById(R.id.MachineDescription);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (cashMachine!=null) {
+                if (cashMachine != null) {
                     String expression = charSequence.toString();
                     setTextFromCashMachine(expression);
                 }
@@ -93,15 +93,15 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
             }
         });
-        dbHelper=new MachineDbHelper(this);
-        if (savedInstanceState!= null) {
+        dbHelper = new MachineDbHelper(this);
+        if (savedInstanceState != null) {
             cashMachine = savedInstanceState.getParcelable("cashMachine");
             descriptionText.setText(savedInstanceState.getString("descriptionText"));
             if (!editText.getText().toString().isEmpty()) {
                 setTextFromCashMachine(editText.getText().toString());
             }
         } else {
-            cashMachine=new CashMachine();
+            cashMachine = new CashMachine();
         }
 
         names = dbHelper.getAllNames();
@@ -137,8 +137,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private int REQUEST_CODE=42;
-    private int REQUEST_LIST_CODE=103;
+    private int REQUEST_CODE = 42;
+    private int REQUEST_LIST_CODE = 103;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.setType("text/plain");
                     startActivityForResult(intent, REQUEST_CODE);
                 } else {
-                    Snackbar.make( findViewById(R.id.mainLayout),
+                    Snackbar.make(findViewById(R.id.mainLayout),
                             getString(R.string.low_android_version),
                             Snackbar.LENGTH_LONG).show();
                 }
@@ -174,11 +174,11 @@ public class MainActivity extends AppCompatActivity {
                 alert.setMessage(getString(R.string.help));
                 alert.setNegativeButton(getResources().getString(R.string.close),
                         new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
 
-                    }
-                });
+                            }
+                        });
                 alert.setCancelable(true);
                 alert.show();
                 break;
@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                         Cursor cursor = db.query(CashMachineContract.CashMachineEntry.TABLE_NAME,
                                 null, null, null, null, null, null);
                         ContentValues cv = new ContentValues();
-                        for (int i=0; i<5 ; i++) {
+                        for (int i = 0; i < 5; i++) {
                             switch (lines.get(0).toLowerCase().charAt(0)) {
                                 case 'n':
                                     cv.put(CashMachineEntry.COLUMN_NAME, lines.get(0).substring(2));
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             names.clear();
                             names.addAll(dbHelper.getAllNames());
-                            ((BaseAdapter)spinner.getAdapter()).notifyDataSetChanged();
+                            ((BaseAdapter) spinner.getAdapter()).notifyDataSetChanged();
                             cashMachine.clear();
                             if (names.isEmpty()) {
                                 descriptionText.setText(getString(R.string.cash_machine_description));
@@ -281,10 +281,10 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             }.execute();
-        } else if(requestCode == REQUEST_LIST_CODE) {
+        } else if (requestCode == REQUEST_LIST_CODE) {
             names.clear();
             names.addAll(dbHelper.getAllNames());
-            ((BaseAdapter)spinner.getAdapter()).notifyDataSetChanged();
+            ((BaseAdapter) spinner.getAdapter()).notifyDataSetChanged();
             if (names.isEmpty()) {
                 cashMachine.clear();
                 descriptionText.setText(getString(R.string.cash_machine_description));
@@ -295,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     void getFirstMachine() {
         cashMachine.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -320,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     String readFromTextFile(Intent resultData, Context context) {
-        String res="";
+        String res = "";
         if (resultData != null) {
             Uri uri = resultData.getData();
             InputStream inputStream = null;
@@ -335,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
                     stringBuilder.append(line);
                     stringBuilder.append("\n");
                 }
-                res=stringBuilder.toString();
+                res = stringBuilder.toString();
 
                 reader.close();
                 inputStream.close();
@@ -377,6 +378,9 @@ public class MainActivity extends AppCompatActivity {
                                 --p;
                             }
                             res.append(line);
+                            while (res.length() < width) {
+                                res.append(" ");
+                            }
                             res.append("\n");
                         } else {
                             res.append(line);
@@ -384,15 +388,16 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     editText.setText(res.toString());
+                    editText.setSelection(editText.getText().length());
                 } else {
-                    Snackbar.make( findViewById(R.id.mainLayout),
+                    Snackbar.make(findViewById(R.id.mainLayout),
                             getString(R.string.no_cr),
                             Snackbar.LENGTH_LONG).show();
                 }
                 break;
             case R.id.buttonUpper:
                 if (editText.getText().toString().isEmpty()) {
-                    Snackbar.make( findViewById(R.id.mainLayout),
+                    Snackbar.make(findViewById(R.id.mainLayout),
                             getString(R.string.no_text),
                             Snackbar.LENGTH_LONG).show();
                 } else {

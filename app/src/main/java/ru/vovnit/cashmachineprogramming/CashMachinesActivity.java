@@ -30,6 +30,7 @@ public class CashMachinesActivity extends AppCompatActivity {
     MachineDbHelper dbHelper;
     ArrayAdapter<String> adapter;
     Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,17 +39,17 @@ public class CashMachinesActivity extends AppCompatActivity {
         myToolbar.setTitle(getResources().getString(R.string.item_delete));
         setSupportActionBar(myToolbar);
 
-        machinesList = (ListView)findViewById(R.id.machinesListView);
+        machinesList = (ListView) findViewById(R.id.machinesListView);
 
         MachineDbHelper db = new MachineDbHelper(this);
         names = db.getAllNames();
 
         adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_multiple_choice, names);
-        dbHelper=new MachineDbHelper(this);
+        dbHelper = new MachineDbHelper(this);
         machinesList.setAdapter(adapter);
         machinesList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        context=this;
+        context = this;
     }
 
     @Override
@@ -63,16 +64,16 @@ public class CashMachinesActivity extends AppCompatActivity {
         final SparseBooleanArray checked = machinesList.getCheckedItemPositions();
         int size = checked.size();
         final ArrayList<Integer> trues = new ArrayList<>();
-        for (int i=0;i<names.size();++i) {
+        for (int i = 0; i < names.size(); ++i) {
             if (checked.get(i)) {
-                int key=checked.keyAt(i);
+                int key = checked.keyAt(i);
                 trues.add(i);
             }
         }
         switch (item.getItemId()) {
             case R.id.action_delete:
                 if (trues.isEmpty()) {
-                    Snackbar.make( findViewById(R.id.machinesListView),
+                    Snackbar.make(findViewById(R.id.machinesListView),
                             getString(R.string.no_selection),
                             Snackbar.LENGTH_LONG).show();
                 } else {
@@ -81,7 +82,7 @@ public class CashMachinesActivity extends AppCompatActivity {
                     builder.setPositiveButton(getResources().getString(R.string.delete), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            ArrayList<String> forDeleting=new ArrayList<String>();
+                            ArrayList<String> forDeleting = new ArrayList<String>();
                             for (int tru : trues) {
                                 forDeleting.add(names.get(tru));
                             }

@@ -29,12 +29,13 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
 
     SpinnerListener(CashMachine cashMachine, MachineDbHelper machineDbHelper,
                     TextView descriptionText, Context context, EditText editText) {
-        this.cashMachine=cashMachine;
-        this.dbHelper=machineDbHelper;
-        this.descriptionText=descriptionText;
-        this.context=context;
-        this.editText=editText;
+        this.cashMachine = cashMachine;
+        this.dbHelper = machineDbHelper;
+        this.descriptionText = descriptionText;
+        this.context = context;
+        this.editText = editText;
     }
+
     @Override
     public void onItemSelected(final AdapterView<?> adapterView, View view, int i, long l) {
         cashMachine.clear();
@@ -56,7 +57,7 @@ public class SpinnerListener implements AdapterView.OnItemSelectedListener {
                     break;
                 }
             } while (cursor.moveToNext());
-            if (descriptionText!=null) {
+            if (descriptionText != null) {
                 descriptionText.setText(cashMachine.getDescription() +
                         context.getResources().getString(R.string.width_of_line) + " " +
                         cashMachine.getLineWidth());
